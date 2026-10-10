@@ -3,513 +3,498 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>الخريطة الملكية | مملكة أرض السلام</title>
+<meta name="theme-color" content="#092c20">
+<title>مملكة PeaceLand | Kingdom of PeaceLand</title>
+
+<link rel="stylesheet"
+ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 <style>
 :root {
-  --green: #103d2b;
-  --deep: #09271c;
-  --gold: #d8b45a;
-  --cream: #f7f1df;
+  --green:#092c20;
+  --green2:#124a35;
+  --gold:#d7b56d;
+  --cream:#f7f1e4;
+  --white:#fff;
+  --muted:#c8d4cb;
 }
-* { box-sizing: border-box; }
-
+* {box-sizing:border-box}
 body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: var(--cream);
-  color: var(--green);
+  margin:0;
+  background:var(--green);
+  color:var(--cream);
+  font-family:Arial,"Segoe UI",sans-serif;
 }
-
+button {cursor:pointer;font:inherit}
 header {
-  background: linear-gradient(135deg, var(--deep), var(--green));
-  color: white;
-  text-align: center;
-  padding: 28px 15px;
-  border-bottom: 4px solid var(--gold);
+  background:linear-gradient(135deg,#061b14,#12432f);
+  border-bottom:2px solid var(--gold);
+  padding:18px 5%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  flex-wrap:wrap;
 }
-
-.crown { font-size: 38px; }
-
-h1 {
-  color: var(--gold);
-  margin: 10px 0;
+.brand {display:flex;align-items:center;gap:14px}
+.flag {
+  width:60px;height:40px;
+  border:1px solid var(--gold);
+  display:grid;place-items:center;
+  background:#124a35;
+  font-size:25px;
 }
-
-nav {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 18px;
+.brand h1 {font-size:clamp(18px,3vw,27px);margin:0}
+.brand p {margin:6px 0 0;color:var(--gold);font-size:12px}
+.actions {display:flex;gap:8px;flex-wrap:wrap}
+.btn {
+  border:1px solid var(--gold);
+  background:transparent;color:var(--cream);
+  padding:10px 14px;border-radius:5px;
 }
-
-button, .home {
-  border: 1px solid var(--gold);
-  border-radius: 8px;
-  padding: 11px 16px;
-  cursor: pointer;
-  font-size: 15px;
+.btn:hover,.btn.active {background:var(--gold);color:var(--green)}
+.hero {
+  text-align:center;
+  padding:45px 15px 30px;
+  background:radial-gradient(ellipse at top,#20553d,#092c20 70%);
 }
-
-nav button {
-  background: var(--gold);
-  color: var(--deep);
-  font-weight: bold;
+.royal-symbol {font-size:48px;color:var(--gold)}
+.hero h2 {font-size:clamp(25px,4vw,42px);margin:12px 0}
+.hero p {color:var(--muted);line-height:1.8;max-width:750px;margin:auto}
+.section {padding:35px 5%;max-width:1450px;margin:auto}
+.section-title {
+  display:flex;align-items:center;gap:12px;
+  color:var(--gold);font-size:24px;margin:0 0 12px;
 }
-
-.home {
-  display: inline-block;
-  background: transparent;
-  color: white;
-  text-decoration: none;
+.section-description {color:var(--muted);line-height:1.8}
+.notice {
+  border-right:4px solid var(--gold);
+  background:#103b2b;padding:13px 16px;
+  color:#e9dfc8;line-height:1.8;margin:20px 0;
 }
-
-main {
-  max-width: 1100px;
-  margin: auto;
-  padding: 25px 15px;
+#worldMap {
+  height:460px;width:100%;border:1px solid var(--gold);
+  border-radius:9px;overflow:hidden;background:#e4e8df;
 }
-
-.intro { text-align: center; }
-
-.map-frame {
-  background: linear-gradient(#d9e9d9, #b7d6c2);
-  border: 3px solid var(--gold);
-  border-radius: 18px;
-  padding: 8px;
-  box-shadow: 0 8px 25px #12352220;
-  overflow: hidden;
+.map-controls {display:flex;gap:10px;flex-wrap:wrap;margin:15px 0}
+.internal-map {
+  background:#e9e3ce;color:#163b2b;
+  border:3px solid var(--gold);border-radius:12px;
+  padding:12px;overflow:hidden;
 }
-
-svg {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.land {
-  fill: #397b52;
-  stroke: #d8b45a;
-  stroke-width: 5;
-  stroke-linejoin: round;
-}
-
-.land-detail {
-  fill: none;
-  stroke: #8ebc83;
-  stroke-width: 3;
-  stroke-dasharray: 7 8;
-}
-
-.city { cursor: pointer; }
-
-.city circle {
-  fill: #f8e5a5;
-  stroke: #103d2b;
-  stroke-width: 3;
-  transition: .2s;
-}
-
-.city:hover circle,
-.city.active circle {
-  fill: #e6a93b;
-  stroke: white;
-  stroke-width: 5;
-}
-
-.city text {
-  font-family: Arial, sans-serif;
-  font-size: 15px;
-  font-weight: bold;
-  fill: white;
-  paint-order: stroke;
-  stroke: #123c2a;
-  stroke-width: 4px;
-  stroke-linejoin: round;
-  text-anchor: middle;
-  pointer-events: none;
-}
-
-.sea-label {
-  fill: #487d77;
-  font-size: 17px;
-  font-style: italic;
-}
-
-.panel {
-  margin-top: 20px;
-  padding: 22px;
-  background: white;
-  border-right: 5px solid var(--gold);
-  border-radius: 12px;
-  box-shadow: 0 4px 18px #0000000b;
-  min-height: 140px;
-}
-
-.panel h3 { margin-top: 0; }
-
+.internal-map svg {width:100%;height:auto;display:block}
 .city-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 12px;
-  margin-top: 20px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:16px;margin-top:25px;
 }
-
 .city-card {
-  background: white;
-  border: 1px solid #d8cda9;
-  border-radius: 10px;
-  padding: 15px;
-  cursor: pointer;
-  text-align: start;
-  color: var(--green);
-  line-height: 1.6;
+  background:linear-gradient(145deg,#123c2c,#0a281e);
+  border:1px solid #806a3b;border-radius:9px;
+  padding:20px;transition:.2s;
 }
-
-.city-card:hover {
-  border-color: var(--gold);
-  background: #fffaf0;
+.city-card:hover {transform:translateY(-4px);border-color:var(--gold)}
+.city-icon {font-size:33px;margin-bottom:10px}
+.city-card h3 {color:var(--gold);margin:5px 0 10px}
+.city-card p {line-height:1.7;color:var(--muted);font-size:14px}
+.city-card button {margin-top:8px}
+.info-panel {
+  display:none;margin-top:15px;padding:18px;
+  background:#153f2e;border:1px solid var(--gold);
+  border-radius:8px;line-height:1.8;
 }
-
-.city-card strong {
-  display: block;
-  margin-bottom: 7px;
-}
-
-.note {
-  font-size: 13px;
-  line-height: 1.8;
-  text-align: center;
-  margin-top: 22px;
-  color: #53675a;
-}
-
 footer {
-  margin-top: 25px;
-  background: var(--deep);
-  color: white;
-  text-align: center;
-  padding: 22px 12px;
-  border-top: 4px solid var(--gold);
-  font-size: 13px;
+  margin-top:30px;text-align:center;padding:30px 15px;
+  border-top:1px solid #7f6a3c;color:var(--muted);line-height:2;
 }
-
+a {color:var(--gold)}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip {background:#103b2b;color:white}
+.leaflet-popup-content {line-height:1.7}
 @media(max-width:600px) {
-  header { padding: 20px 10px; }
-  h1 { font-size: 24px; }
-  .city text { font-size: 17px; }
-  .panel { padding: 16px; }
+  header {padding:14px}
+  .section {padding:25px 14px}
+  #worldMap {height:350px}
+  .hero {padding-top:30px}
+  .btn {padding:9px 10px;font-size:13px}
 }
 </style>
 </head>
 
 <body>
-
 <header>
-  <div class="crown">👑</div>
-  <h1 id="title">الخريطة الملكية</h1>
-  <p id="subtitle">مملكة أرض السلام — المدن والأقاليم الملكية</p>
-
-  <nav>
-    <button onclick="setLang('ar')">العربية</button>
-    <button onclick="setLang('en')">English</button>
-    <a class="home" href="https://endearing-axolotl-b97f7f.netlify.app/">
-      <span id="homeText">الموقع الرسمي</span>
-    </a>
-  </nav>
+  <div class="brand">
+    <div class="flag" aria-label="علم المملكة">👑</div>
+    <div>
+      <h1 id="siteTitle">مملكة السلام</h1>
+      <p>THE KINGDOM OF PEACELAND</p>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="btn" id="languageBtn" onclick="toggleLanguage()">English</button>
+    <button class="btn" onclick="scrollToSection('worldSection')" data-ar="الخريطة العالمية" data-en="World map">الخريطة العالمية</button>
+    <button class="btn" onclick="scrollToSection('kingdomSection')" data-ar="خريطة المملكة" data-en="Kingdom map">خريطة المملكة</button>
+    <a class="btn" href="https://endearing-axolotl-b97f7f.netlify.app/" style="text-decoration:none" data-ar="الموقع الرئيسي" data-en="Main website">الموقع الرئيسي</a>
+  </div>
 </header>
 
-<main>
-  <section class="intro">
-    <h2 id="mapTitle">🗺️ خريطة المملكة</h2>
-    <p id="mapIntro">اضغط على أي مدينة في الخريطة لاكتشاف معلوماتها.</p>
-  </section>
+<section class="hero">
+  <div class="royal-symbol">♛</div>
+  <h2 id="heroTitle">مملكة PeaceLand</h2>
+  <p id="heroText">
+    أرض السلام والتعاون والمعرفة والازدهار.
+    اكتشف خريطة المملكة ومدنها الثماني ومعالمها الملكية.
+  </p>
+</section>
 
-  <div class="map-frame">
-    <svg viewBox="0 0 700 540" role="img"
-         aria-label="خريطة خيالية تفاعلية لمملكة أرض السلام">
+<section class="section" id="worldSection">
+  <h2 class="section-title" data-ar="🌍 الخريطة العالمية" data-en="🌍 World map">🌍 الخريطة العالمية</h2>
+  <p class="section-description" data-ar="استكشف الخريطة العالمية. المنطقة الموضحة مجرد تصور جغرافي خيالي للمشروع وليست حدودًا سياسية معترفًا بها." data-en="Explore the world map. The highlighted area is a fictional visualization for this project, not internationally recognized political boundaries.">
+    استكشف الخريطة العالمية. المنطقة الموضحة مجرد تصور جغرافي خيالي للمشروع وليست حدودًا سياسية معترفًا بها.
+  </p>
+  <div class="notice" data-ar="تنبيه: PeaceLand مملكة خيالية لمشروع إبداعي. تحديد المنطقة على الخريطة لا يعني امتلاك أرض أو تغيير حدود تونس أو أي دولة." data-en="Notice: PeaceLand is a fictional kingdom for a creative project. The map does not claim territory or change Tunisia's or any country's borders.">
+    تنبيه: PeaceLand مملكة خيالية لمشروع إبداعي. تحديد المنطقة على الخريطة لا يعني امتلاك أرض أو تغيير حدود تونس أو أي دولة.
+  </div>
+  <div id="worldMap" aria-label="Interactive world map"></div>
+  <div class="map-controls">
+    <button class="btn active" onclick="showWorld()" data-ar="عرض العالم" data-en="Show world">عرض العالم</button>
+    <button class="btn" onclick="showTunisia()" data-ar="عرض شمال تونس" data-en="View northern Tunisia">عرض شمال تونس</button>
+    <button class="btn" onclick="scrollToSection('kingdomSection')" data-ar="اكتشف المدن الثماني ↓" data-en="Explore the eight cities ↓">اكتشف المدن الثماني ↓</button>
+  </div>
+</section>
 
+<section class="section" id="kingdomSection">
+  <h2 class="section-title" data-ar="🏰 الخريطة الداخلية للمملكة" data-en="🏰 Kingdom map">🏰 الخريطة الداخلية للمملكة</h2>
+  <p class="section-description" data-ar="خريطة فنية خيالية تضم العاصمة الملكية وثماني مدن ومعالم طبيعية وعمرانية." data-en="A fictional illustrated map featuring the royal capital, eight cities, natural landscapes, and landmarks.">
+    خريطة فنية خيالية تضم العاصمة الملكية وثماني مدن ومعالم طبيعية وعمرانية.
+  </p>
+
+  <div class="internal-map">
+    <svg viewBox="0 0 1000 690" role="img" aria-label="Fictional map of PeaceLand">
       <defs>
-        <pattern id="water" width="35" height="35"
-                 patternUnits="userSpaceOnUse">
-          <path d="M0 18 Q9 12 18 18 T36 18"
-                fill="none" stroke="#ffffff" stroke-opacity=".35"/>
+        <linearGradient id="land" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#d9d8a9"/>
+          <stop offset="1" stop-color="#a7c29a"/>
+        </linearGradient>
+        <pattern id="forest" width="32" height="30" patternUnits="userSpaceOnUse">
+          <path d="M8 22 L15 5 L22 22 Z" fill="#487b4c"/>
+          <rect x="13" y="22" width="4" height="5" fill="#755b37"/>
         </pattern>
       </defs>
 
-      <rect width="700" height="540" fill="url(#water)"/>
+      <rect width="1000" height="690" rx="10" fill="#c7dfe1"/>
+      <path d="M80 50 Q190 20 300 65 T520 55 Q650 35 740 90
+               L900 80 L940 170 L900 270 L930 370 L870 500
+               L760 620 L600 645 L480 610 L350 650 L220 590
+               L110 500 L60 380 L75 250 L45 150 Z"
+            fill="url(#land)" stroke="#b18b43" stroke-width="8"/>
 
-      <text x="85" y="100" class="sea-label" id="sea1">
-        البحر الغربي
-      </text>
-
-      <text x="500" y="440" class="sea-label" id="sea2">
-        البحر الشرقي
-      </text>
-
-      <!-- الخريطة الخيالية للمملكة -->
-      <path class="land"
-        d="M274 38
-           L335 55 371 40 402 75 452 83
-           469 122 512 142 500 179
-           539 211 522 252 555 286
-           528 326 492 342 481 384
-           444 405 430 447 387 463
-           356 494 318 477 292 444
-           248 430 232 397 191 382
-           174 343 139 322 151 282
-           126 246 149 213 139 174
-           171 151 183 112 222 98
-           237 65 Z"/>
-
-      <path class="land-detail"
-        d="M210 135 Q310 170 260 245
-           T320 370 Q380 320 455 360"/>
-
-      <path class="land-detail"
-        d="M180 280 Q270 300 330 245
-           T465 185"/>
-
-      <g class="city active" tabindex="0" role="button"
-         onclick="showCity(0)" onkeydown="keyCity(event,0)">
-        <circle cx="345" cy="205" r="10"/>
-        <text x="345" y="187" id="label0">العاصمة الملكية</text>
+      <!-- Mountains -->
+      <g fill="#8e927a" stroke="#6e765e" stroke-width="2">
+        <path d="M180 140 L230 65 L280 140 Z"/>
+        <path d="M250 145 L305 55 L365 145 Z"/>
+        <path d="M320 145 L375 80 L420 145 Z"/>
+        <path d="M570 125 L625 55 L680 125 Z"/>
+        <path d="M630 135 L690 45 L750 135 Z"/>
+      </g>
+      <g fill="#f8f3dd">
+        <path d="M214 89 L230 65 L247 90 L230 83 Z"/>
+        <path d="M287 84 L305 55 L324 84 L305 76 Z"/>
+        <path d="M672 73 L690 45 L709 74 L690 66 Z"/>
       </g>
 
-      <g class="city" tabindex="0" role="button"
-         onclick="showCity(1)" onkeydown="keyCity(event,1)">
-        <circle cx="260" cy="260" r="9"/>
-        <text x="260" y="244" id="label1">مدينة السلام</text>
+      <!-- Forests -->
+      <path d="M110 260 Q170 205 240 260 L245 350 Q170 390 110 330 Z"
+            fill="url(#forest)" opacity=".95"/>
+      <path d="M690 380 Q760 320 825 385 L830 475 Q760 520 690 465 Z"
+            fill="url(#forest)" opacity=".95"/>
+
+      <!-- River -->
+      <path d="M400 80 C365 180 455 220 415 300
+               S500 400 445 485 S510 570 475 620"
+            fill="none" stroke="#4d9ab4" stroke-width="13" stroke-linecap="round"/>
+      <path d="M400 80 C365 180 455 220 415 300
+               S500 400 445 485 S510 570 475 620"
+            fill="none" stroke="#d6f2ef" stroke-width="3"/>
+
+      <!-- Roads -->
+      <g fill="none" stroke="#f8f0d8" stroke-width="10" stroke-linecap="round">
+        <path d="M500 320 L300 230 L190 410"/>
+        <path d="M500 320 L700 235 L790 300"/>
+        <path d="M500 320 L700 470 L590 550"/>
+        <path d="M500 320 L330 500"/>
+        <path d="M500 320 L760 550"/>
+      </g>
+      <g fill="none" stroke="#b69b65" stroke-width="2" stroke-dasharray="8 7">
+        <path d="M500 320 L300 230 L190 410"/>
+        <path d="M500 320 L700 235 L790 300"/>
+        <path d="M500 320 L700 470 L590 550"/>
+        <path d="M500 320 L330 500"/>
+        <path d="M500 320 L760 550"/>
       </g>
 
-      <g class="city" tabindex="0" role="button"
-         onclick="showCity(2)" onkeydown="keyCity(event,2)">
-        <circle cx="430" cy="155" r="9"/>
-        <text x="430" y="138" id="label2">المدينة الذهبية</text>
+      <!-- Harbour -->
+      <path d="M845 170 L930 180 L920 280 L865 265 Z" fill="#72b7ca"/>
+      <path d="M860 195 L918 205 M860 220 L915 230 M860 245 L910 255"
+            stroke="#e9f8f6" stroke-width="3"/>
+
+      <!-- Capital -->
+      <g transform="translate(500 320)">
+        <circle r="43" fill="#fff7df" stroke="#a77b29" stroke-width="5"/>
+        <path d="M-27 5 L-27 -13 L-15 -2 L0 -23 L15 -2 L27 -13 L27 5 Z"
+              fill="#c9a44e" stroke="#795d24" stroke-width="2"/>
+        <rect x="-22" y="6" width="44" height="20" rx="2" fill="#154d35"/>
+        <rect x="-6" y="13" width="12" height="13" fill="#e8d49a"/>
+      </g>
+      <text x="500" y="383" text-anchor="middle" font-size="21" font-weight="bold" fill="#183d2b">العاصمة الملكية</text>
+      <text x="500" y="405" text-anchor="middle" font-size="13" fill="#183d2b">ROYAL CAPITAL</text>
+
+      <!-- City markers: all have a crown -->
+      <g font-size="15" font-weight="bold" text-anchor="middle" fill="#173c2a">
+        <g transform="translate(300 230)">
+          <circle r="24" fill="#fff8e6" stroke="#bd9949" stroke-width="3"/>
+          <text y="-1" font-size="20">🕊</text><text y="-25" font-size="14">♛</text>
+          <text y="44">مدينة السلام</text>
+        </g>
+        <g transform="translate(700 235)">
+          <circle r="24" fill="#fff8e6" stroke="#bd9949" stroke-width="3"/>
+          <text y="6" font-size="22">⚜</text><text y="-25" font-size="14">♛</text>
+          <text y="44">المدينة الذهبية</text>
+        </g>
+        <g transform="translate(190 410)">
+          <circle r="24" fill="#fff8e6" stroke="#bd9949" stroke-width="3"/>
+          <text y="6" font-size="22">★</text><text y="-25" font-size="14">♛</text>
+          <text y="44">مدينة المعرفة</text>
+        </g>
+        <g transform="translate(790 300)">
+          <circle r="24" fill="#fff8e6" stroke="#bd9949" stroke-width="3"/>
+          <text y="6" font-size="22">⚓</text><text y="-25" font-size="14">♛</text>
+          <text y="44">المدينة الساحلية</text>
+        </g>
+        <g transform="translate(330 500)">
+          <circle r="24" fill="#fff8e6" stroke="#bd9949" stroke-width="3"/>
+          <text y="6" font-size="22">🍃</text><text y="-25" font-size="14">♛</text>
+          <text y="44">الوادي الأخضر</text>
+        </g>
+        <g transform="translate(700 470)">
+          <circle r="24" fill="#fff8e6" stroke="#bd9949" stroke-width="3"/>
+          <text y="6" font-size="22">⚙</text><text y="-25" font-size="14">♛</text>
+          <text y="44">المدينة الصناعية</text>
+        </g>
+        <g transform="translate(590 550)">
+          <circle r="24" fill="#fff8e6" stroke="#bd9949" stroke-width="3"/>
+          <text y="6" font-size="22">◆</text><text y="-25" font-size="14">♛</text>
+          <text y="44">مدينة التراث</text>
+        </g>
       </g>
 
-      <g class="city" tabindex="0" role="button"
-         onclick="showCity(3)" onkeydown="keyCity(event,3)">
-        <circle cx="285" cy="350" r="9"/>
-        <text x="285" y="334" id="label3">مدينة المعرفة</text>
+      <g transform="translate(900 590)">
+        <path d="M0 -45 L-17 10 L0 0 L17 10 Z" fill="#164b35" stroke="#d5b66d" stroke-width="2"/>
+        <text x="0" y="32" text-anchor="middle" font-size="16" fill="#173c2a" font-weight="bold">N</text>
       </g>
-
-      <g class="city" tabindex="0" role="button"
-         onclick="showCity(4)" onkeydown="keyCity(event,4)">
-        <circle cx="475" cy="270" r="9"/>
-        <text x="475" y="254" id="label4">المدينة الساحلية</text>
-      </g>
-
-      <g class="city" tabindex="0" role="button"
-         onclick="showCity(5)" onkeydown="keyCity(event,5)">
-        <circle cx="210" cy="190" r="9"/>
-        <text x="210" y="174" id="label5">الوادي الأخضر</text>
-      </g>
-
-      <g class="city" tabindex="0" role="button"
-         onclick="showCity(6)" onkeydown="keyCity(event,6)">
-        <circle cx="400" cy="365" r="9"/>
-        <text x="400" y="349" id="label6">المدينة الصناعية</text>
-      </g>
-
-      <g class="city" tabindex="0" role="button"
-         onclick="showCity(7)" onkeydown="keyCity(event,7)">
-        <circle cx="350" cy="430" r="9"/>
-        <text x="350" y="414" id="label7">مدينة التراث</text>
-      </g>
-
-      <text x="350" y="520" text-anchor="middle"
-            font-size="12" fill="#103d2b" id="mapCaption">
-        خريطة رمزية خيالية لمملكة أرض السلام
+      <text x="500" y="675" text-anchor="middle" font-size="15" fill="#183d2b">
+        PEACELAND • FICTIONAL KINGDOM MAP
       </text>
     </svg>
   </div>
 
-  <section class="panel" aria-live="polite">
-    <h3 id="cityName">🏰 العاصمة الملكية</h3>
-    <p id="cityDescription">
-      المركز الملكي ومقر القصر الملكي والمؤسسات الحكومية الرئيسية.
-    </p>
-  </section>
+  <div id="cityInfo" class="info-panel"></div>
 
-  <h2 id="allCitiesTitle">مدن المملكة الثماني</h2>
+  <h2 class="section-title" style="margin-top:35px" data-ar="👑 مدن المملكة الثماني" data-en="👑 The eight royal cities">👑 مدن المملكة الثماني</h2>
   <div class="city-grid" id="cityGrid"></div>
+</section>
 
-  <p class="note" id="disclaimer">
-    ملاحظة: مملكة أرض السلام مشروع خيالي رمزي، وهذه الخريطة تصوّرية
-    وليست خريطة جغرافية لدولة معترف بها.
-  </p>
-</main>
+<section class="section">
+  <h2 class="section-title" data-ar="🏛️ معالم المملكة" data-en="🏛️ Kingdom landmarks">🏛️ معالم المملكة</h2>
+  <div class="city-grid">
+    <article class="city-card">
+      <div class="city-icon">👑</div>
+      <h3 data-ar="القصر الملكي" data-en="Royal Palace">القصر الملكي</h3>
+      <p data-ar="المقر الرمزي للملك ومركز المؤسسات الملكية في العاصمة." data-en="The symbolic residence of the monarch and the center of royal institutions.">المقر الرمزي للملك ومركز المؤسسات الملكية في العاصمة.</p>
+    </article>
+    <article class="city-card">
+      <div class="city-icon">🌲</div>
+      <h3 data-ar="الغابات الملكية" data-en="Royal Forests">الغابات الملكية</h3>
+      <p data-ar="مساحات خضراء خيالية مخصصة للطبيعة والتنوع البيئي." data-en="Fictional green spaces dedicated to nature and biodiversity.">مساحات خضراء خيالية مخصصة للطبيعة والتنوع البيئي.</p>
+    </article>
+    <article class="city-card">
+      <div class="city-icon">🌊</div>
+      <h3 data-ar="الميناء الملكي" data-en="Royal Harbour">الميناء الملكي</h3>
+      <p data-ar="معلم ساحلي يرمز إلى التجارة والسياحة والتواصل." data-en="A coastal landmark symbolizing trade, tourism, and connection.">معلم ساحلي يرمز إلى التجارة والسياحة والتواصل.</p>
+    </article>
+    <article class="city-card">
+      <div class="city-icon">🏔️</div>
+      <h3 data-ar="جبال السلام" data-en="Mountains of Peace">جبال السلام</h3>
+      <p data-ar="سلسلة جبلية خيالية في شمال المملكة." data-en="A fictional mountain range in the north of the kingdom.">سلسلة جبلية خيالية في شمال المملكة.</p>
+    </article>
+  </div>
+</section>
 
 <footer>
-  <div id="footerText">👑 مملكة أرض السلام | الخريطة الملكية</div>
-  <div>© <span id="year"></span></div>
+  <div style="font-size:30px;color:#d7b56d">♛ PEACELAND ♛</div>
+  <div id="footerText">مملكة السلام • السلام • المعرفة • الازدهار</div>
+  <div data-ar="مشروع خيالي وإبداعي، لا يمثل حدودًا أو سيادة معترفًا بها." data-en="A fictional creative project; it does not represent recognized borders or sovereignty.">
+    مشروع خيالي وإبداعي، لا يمثل حدودًا أو سيادة معترفًا بها.
+  </div>
+  <a href="https://endearing-axolotl-b97f7f.netlify.app/" data-ar="العودة إلى الموقع الرئيسي" data-en="Return to main website">العودة إلى الموقع الرئيسي</a>
 </footer>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+let currentLanguage = "ar";
+
 const cities = [
   {
-    ar: "العاصمة الملكية",
-    en: "Royal Capital",
-    arDesc: "المركز الملكي ومقر القصر الملكي والمؤسسات الحكومية الرئيسية.",
-    enDesc: "The royal center, home to the Royal Palace and principal government institutions."
+    id:"capital", icon:"🏰", ar:"العاصمة الملكية", en:"Royal Capital",
+    arDesc:"مركز الحكم ومقر القصر الملكي والمؤسسات الحكومية.",
+    enDesc:"The seat of government, the royal palace, and public institutions."
   },
   {
-    ar: "مدينة السلام",
-    en: "Peace City",
-    arDesc: "مركز الوزارات والإدارات العمومية والخدمات الموجهة للمواطنين.",
-    enDesc: "A center for ministries, public administration and citizen services."
+    id:"peace", icon:"🕊️", ar:"مدينة السلام", en:"Peace City",
+    arDesc:"مدينة الوزارات والخدمات العامة والتعاون المجتمعي.",
+    enDesc:"A city of ministries, public services, and community cooperation."
   },
   {
-    ar: "المدينة الذهبية",
-    en: "Golden City",
-    arDesc: "قطب التجارة والأعمال والاستثمار والأنشطة الاقتصادية.",
-    enDesc: "A hub for commerce, business, investment and economic activity."
+    id:"golden", icon:"⚜️", ar:"المدينة الذهبية", en:"Golden City",
+    arDesc:"مركز التجارة والأعمال والاستثمار والأنشطة الاقتصادية.",
+    enDesc:"A center for trade, business, investment, and economic activity."
   },
   {
-    ar: "مدينة المعرفة",
-    en: "Knowledge City",
-    arDesc: "مركز الجامعات والتعليم والبحث العلمي والابتكار المعرفي.",
-    enDesc: "A center for universities, education, research and knowledge."
+    id:"knowledge", icon:"⭐", ar:"مدينة المعرفة", en:"Knowledge City",
+    arDesc:"مدينة الجامعات والبحث العلمي والمكتبات والابتكار.",
+    enDesc:"A city of universities, research, libraries, and innovation."
   },
   {
-    ar: "المدينة الساحلية",
-    en: "Coastal City",
-    arDesc: "منطقة الموانئ والسياحة والأنشطة البحرية.",
-    enDesc: "A coastal region for ports, tourism and maritime activities."
+    id:"coastal", icon:"⚓", ar:"المدينة الساحلية", en:"Coastal City",
+    arDesc:"مدينة الميناء والأنشطة البحرية والسياحة الساحلية.",
+    enDesc:"A city of harbours, maritime activities, and coastal tourism."
   },
   {
-    ar: "الوادي الأخضر",
-    en: "Green Valley",
-    arDesc: "منطقة الطبيعة والزراعة والاستدامة وحماية البيئة.",
-    enDesc: "A region dedicated to nature, agriculture, sustainability and the environment."
+    id:"valley", icon:"🍃", ar:"الوادي الأخضر", en:"Green Valley",
+    arDesc:"منطقة خضراء تهتم بالفلاحة والطبيعة وحماية البيئة.",
+    enDesc:"A green region focused on agriculture, nature, and environmental protection."
   },
   {
-    ar: "المدينة الصناعية",
-    en: "Industrial City",
-    arDesc: "مركز الصناعة والتكنولوجيا والإنتاج والابتكار.",
-    enDesc: "A center for industry, technology, manufacturing and innovation."
+    id:"industrial", icon:"⚙️", ar:"المدينة الصناعية", en:"Industrial City",
+    arDesc:"مركز للصناعة والتكنولوجيا والمشاريع الإنتاجية.",
+    enDesc:"A center for industry, technology, and productive projects."
   },
   {
-    ar: "مدينة التراث",
-    en: "Heritage City",
-    arDesc: "مدينة الثقافة والمتاحف والمعالم التاريخية والفنون.",
-    enDesc: "A city of culture, museums, historical landmarks and the arts."
+    id:"heritage", icon:"◆", ar:"مدينة التراث", en:"Heritage City",
+    arDesc:"مدينة الثقافة والمتاحف والفنون والمعالم التاريخية.",
+    enDesc:"A city of culture, museums, arts, and historical landmarks."
   }
 ];
 
-let lang = "ar";
-let selected = 0;
-
-function showCity(index) {
-  selected = index;
-
-  document.querySelectorAll(".city").forEach((el, i) => {
-    el.classList.toggle("active", i === index);
-  });
-
-  document.getElementById("cityName").textContent =
-    "🏰 " + cities[index][lang];
-
-  document.getElementById("cityDescription").textContent =
-    cities[index][lang + "Desc"];
-
-  renderCards();
-}
-
-function keyCity(event, index) {
-  if (event.key === "Enter" || event.key === " ") {
-    event.preventDefault();
-    showCity(index);
-  }
-}
-
-function renderCards() {
+function renderCities(){
   const grid = document.getElementById("cityGrid");
   grid.innerHTML = "";
 
-  cities.forEach((city, index) => {
-    const button = document.createElement("button");
-    button.className = "city-card";
+  cities.forEach(city => {
+    const name = currentLanguage === "ar" ? city.ar : city.en;
+    const description = currentLanguage === "ar" ? city.arDesc : city.enDesc;
+    const buttonText = currentLanguage === "ar" ? "اكتشف المدينة" : "Explore city";
 
-    const name = document.createElement("strong");
-    name.textContent = (index + 1) + ". " + city[lang];
-
-    const description = document.createElement("span");
-    description.textContent = city[lang + "Desc"];
-
-    button.appendChild(name);
-    button.appendChild(description);
-    button.onclick = () => showCity(index);
-
-    grid.appendChild(button);
+    const card = document.createElement("article");
+    card.className = "city-card";
+    card.innerHTML = `
+      <div class="city-icon">♛ ${city.icon}</div>
+      <h3>${name}</h3>
+      <p>${description}</p>
+      <button class="btn" onclick="showCity('${city.id}')">${buttonText}</button>
+    `;
+    grid.appendChild(card);
   });
 }
 
-function setLang(language) {
-  lang = language;
-  const english = lang === "en";
+function showCity(id){
+  const city = cities.find(c => c.id === id);
+  if(!city) return;
 
-  document.documentElement.lang = lang;
-  document.documentElement.dir = english ? "ltr" : "rtl";
+  const name = currentLanguage === "ar" ? city.ar : city.en;
+  const description = currentLanguage === "ar" ? city.arDesc : city.enDesc;
+  const label = currentLanguage === "ar" ? "مدينة تابعة للتاج الملكي" : "A city under the royal crown";
 
-  document.getElementById("title").textContent =
-    english ? "Royal Map" : "الخريطة الملكية";
+  const panel = document.getElementById("cityInfo");
+  panel.style.display = "block";
+  panel.innerHTML = `
+    <div style="font-size:28px">♛ ${city.icon}</div>
+    <h3 style="color:#d7b56d">${name}</h3>
+    <p>${description}</p>
+    <p>${label}</p>
+  `;
+  panel.scrollIntoView({behavior:"smooth",block:"center"});
+}
 
-  document.getElementById("subtitle").textContent =
-    english
-      ? "Kingdom of PeaceLand — Royal Cities and Regions"
-      : "مملكة أرض السلام — المدن والأقاليم الملكية";
-
-  document.getElementById("homeText").textContent =
-    english ? "Official Website" : "الموقع الرسمي";
-
-  document.getElementById("mapTitle").textContent =
-    english ? "🗺️ Kingdom Map" : "🗺️ خريطة المملكة";
-
-  document.getElementById("mapIntro").textContent =
-    english
-      ? "Select a city on the map to discover more."
-      : "اضغط على أي مدينة في الخريطة لاكتشاف معلوماتها.";
-
-  document.getElementById("sea1").textContent =
-    english ? "Western Sea" : "البحر الغربي";
-
-  document.getElementById("sea2").textContent =
-    english ? "Eastern Sea" : "البحر الشرقي";
-
-  document.getElementById("mapCaption").textContent =
-    english
-      ? "Illustrative fictional map of the Kingdom of PeaceLand"
-      : "خريطة رمزية خيالية لمملكة أرض السلام";
-
-  document.getElementById("allCitiesTitle").textContent =
-    english ? "The Eight Cities of the Kingdom" : "مدن المملكة الثماني";
-
-  document.getElementById("disclaimer").textContent =
-    english
-      ? "Disclaimer: PeaceLand is a fictional symbolic project. This illustrative map does not represent a recognized sovereign state."
-      : "ملاحظة: مملكة أرض السلام مشروع خيالي رمزي، وهذه الخريطة تصوّرية وليست خريطة جغرافية لدولة معترف بها.";
-
+function toggleLanguage(){
+  currentLanguage = currentLanguage === "ar" ? "en" : "ar";
+  document.documentElement.lang = currentLanguage;
+  document.documentElement.dir = currentLanguage === "ar" ? "rtl" : "ltr";
+  document.getElementById("languageBtn").textContent =
+    currentLanguage === "ar" ? "English" : "العربية";
+  document.getElementById("siteTitle").textContent =
+    currentLanguage === "ar" ? "مملكة السلام" : "Kingdom of PeaceLand";
+  document.getElementById("heroTitle").textContent =
+    currentLanguage === "ar" ? "مملكة PeaceLand" : "Kingdom of PeaceLand";
+  document.getElementById("heroText").textContent =
+    currentLanguage === "ar"
+      ? "أرض السلام والتعاون والمعرفة والازدهار. اكتشف خريطة المملكة ومدنها الثماني ومعالمها الملكية."
+      : "A land of peace, cooperation, knowledge, and prosperity. Explore the kingdom map, eight cities, and royal landmarks.";
   document.getElementById("footerText").textContent =
-    english
-      ? "👑 Kingdom of PeaceLand | Royal Map"
-      : "👑 مملكة أرض السلام | الخريطة الملكية";
+    currentLanguage === "ar"
+      ? "مملكة السلام • السلام • المعرفة • الازدهار"
+      : "Kingdom of PeaceLand • Peace • Knowledge • Prosperity";
 
-  cities.forEach((city, index) => {
-    document.getElementById("label" + index).textContent = city[lang];
+  document.querySelectorAll("[data-ar][data-en]").forEach(element => {
+    element.textContent = element.getAttribute("data-" + currentLanguage);
   });
 
-  showCity(selected);
+  renderCities();
 }
 
-document.getElementById("year").textContent = new Date().getFullYear();
+function scrollToSection(id){
+  document.getElementById(id).scrollIntoView({behavior:"smooth"});
+}
 
-renderCards();
-showCity(0);
+const worldMap = L.map("worldMap").setView([35.5, 10.0], 5);
+
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  maxZoom: 18
+}).addTo(worldMap);
+
+// Approximate fictional visualization around northern Tunisia.
+// This is an illustration only, not a territorial or sovereignty claim.
+const fictionalRegion = L.polygon([
+  [37.35, 8.10],
+  [37.45, 9.00],
+  [37.15, 10.20],
+  [36.65, 10.75],
+  [36.15, 10.55],
+  [35.85, 9.70],
+  [36.20, 8.80],
+  [36.75, 8.15]
+], {
+  color:"#d7b56d",
+  weight:4,
+  fillColor:"#176343",
+  fillOpacity:0.55
+}).addTo(worldMap);
+
+fictionalRegion.bindPopup(
+  "<strong>Kingdom of PeaceLand</strong><br>" +
+  "Fictional project visualization — not recognized borders."
+);
+
+function showWorld(){
+  worldMap.setView([25, 10], 2);
+}
+
+function showTunisia(){
+  worldMap.fitBounds(fictionalRegion.getBounds(), {padding:[30,30]});
+  fictionalRegion.openPopup();
+}
+
+renderCities();
 </script>
-
 </body>
 </html>
