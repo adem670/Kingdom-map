@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الخريطة الملكية | مملكة أرض السلام</title>
+
+<style>
+:root {
+  --green: #103d2b;
+  --deep: #09271c;
+  --gold: #d8b45a;
+  --cream: #f7f1df;
+}
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: var(--cream);
+  color: var(--green);
+}
+
+header {
+  background: linear-gradient(135deg, var(--deep), var(--green));
+  color: white;
+  text-align: center;
+  padding: 28px 15px;
+  border-bottom: 4px solid var(--gold);
+}
+
+.crown { font-size: 38px; }
+
+h1 {
+  color: var(--gold);
+  margin: 10px 0;
+}
+
+nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+button, .home {
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  padding: 11px 16px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+nav button {
+  background: var(--gold);
+  color: var(--deep);
+  font-weight: bold;
+}
+
+.home {
+  display: inline-block;
+  background: transparent;
+  color: white;
+  text-decoration: none;
+}
+
+main {
+  max-width: 1100px;
+  margin: auto;
+  padding: 25px 15px;
+}
+
+.intro { text-align: center; }
+
+.map-frame {
+  background: linear-gradient(#d9e9d9, #b7d6c2);
+  border: 3px solid var(--gold);
+  border-radius: 18px;
+  padding: 8px;
+  box-shadow: 0 8px 25px #12352220;
+  overflow: hidden;
+}
+
+svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.land {
+  fill: #397b52;
+  stroke: #d8b45a;
+  stroke-width: 5;
+  stroke-linejoin: round;
+}
+
+.land-detail {
+  fill: none;
+  stroke: #8ebc83;
+  stroke-width: 3;
+  stroke-dasharray: 7 8;
+}
+
+.city { cursor: pointer; }
+
+.city circle {
+  fill: #f8e5a5;
+  stroke: #103d2b;
+  stroke-width: 3;
+  transition: .2s;
+}
+
+.city:hover circle,
+.city.active circle {
+  fill: #e6a93b;
+  stroke: white;
+  stroke-width: 5;
+}
+
+.city text {
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+  font-weight: bold;
+  fill: white;
+  paint-order: stroke;
+  stroke: #123c2a;
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.sea-label {
+  fill: #487d77;
+  font-size: 17px;
+  font-style: italic;
+}
+
+.panel {
+  margin-top: 20px;
+  padding: 22px;
+  background: white;
+  border-right: 5px solid var(--gold);
+  border-radius: 12px;
+  box-shadow: 0 4px 18px #0000000b;
+  min-height: 140px;
+}
+
+.panel h3 { margin-top: 0; }
+
+.city-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.city-card {
+  background: white;
+  border: 1px solid #d8cda9;
+  border-radius: 10px;
+  padding: 15px;
+  cursor: pointer;
+  text-align: start;
+  color: var(--green);
+  line-height: 1.6;
+}
+
+.city-card:hover {
+  border-color: var(--gold);
+  background: #fffaf0;
+}
+
+.city-card strong {
+  display: block;
+  margin-bottom: 7px;
+}
+
+.note {
+  font-size: 13px;
+  line-height: 1.8;
+  text-align: center;
+  margin-top: 22px;
+  color: #53675a;
+}
+
+footer {
+  margin-top: 25px;
+  background: var(--deep);
+  color: white;
+  text-align: center;
+  padding: 22px 12px;
+  border-top: 4px solid var(--gold);
+  font-size: 13px;
+}
+
+@media(max-width:600px) {
+  header { padding: 20px 10px; }
+  h1 { font-size: 24px; }
+  .city text { font-size: 17px; }
+  .panel { padding: 16px; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="crown">👑</div>
+  <h1 id="title">الخريطة الملكية</h1>
+  <p id="subtitle">مملكة أرض السلام — المدن والأقاليم الملكية</p>
+
+  <nav>
+    <button onclick="setLang('ar')">العربية</button>
+    <button onclick="setLang('en')">English</button>
+    <a class="home" href="https://endearing-axolotl-b97f7f.netlify.app/">
+      <span id="homeText">الموقع الرسمي</span>
+    </a>
+  </nav>
+</header>
+
+<main>
+  <section class="intro">
+    <h2 id="mapTitle">🗺️ خريطة المملكة</h2>
+    <p id="mapIntro">اضغط على أي مدينة في الخريطة لاكتشاف معلوماتها.</p>
+  </section>
+
+  <div class="map-frame">
+    <svg viewBox="0 0 700 540" role="img"
+         aria-label="خريطة خيالية تفاعلية لمملكة أرض السلام">
+
+      <defs>
+        <pattern id="water" width="35" height="35"
+                 patternUnits="userSpaceOnUse">
+          <path d="M0 18 Q9 12 18 18 T36 18"
+                fill="none" stroke="#ffffff" stroke-opacity=".35"/>
+        </pattern>
+      </defs>
+
+      <rect width="700" height="540" fill="url(#water)"/>
+
+      <text x="85" y="100" class="sea-label" id="sea1">
+        البحر الغربي
+      </text>
+
+      <text x="500" y="440" class="sea-label" id="sea2">
+        البحر الشرقي
+      </text>
+
+      <!-- الخريطة الخيالية للمملكة -->
+      <path class="land"
+        d="M274 38
+           L335 55 371 40 402 75 452 83
+           469 122 512 142 500 179
+           539 211 522 252 555 286
+           528 326 492 342 481 384
+           444 405 430 447 387 463
+           356 494 318 477 292 444
+           248 430 232 397 191 382
+           174 343 139 322 151 282
+           126 246 149 213 139 174
+           171 151 183 112 222 98
+           237 65 Z"/>
+
+      <path class="land-detail"
+        d="M210 135 Q310 170 260 245
+           T320 370 Q380 320 455 360"/>
+
+      <path class="land-detail"
+        d="M180 280 Q270 300 330 245
+           T465 185"/>
+
+      <g class="city active" tabindex="0" role="button"
+         onclick="showCity(0)" onkeydown="keyCity(event,0)">
+        <circle cx="345" cy="205" r="10"/>
+        <text x="345" y="187" id="label0">العاصمة الملكية</text>
+      </g>
+
+      <g class="city" tabindex="0" role="button"
+         onclick="showCity(1)" onkeydown="keyCity(event,1)">
+        <circle cx="260" cy="260" r="9"/>
+        <text x="260" y="244" id="label1">مدينة السلام</text>
+      </g>
+
+      <g class="city" tabindex="0" role="button"
+         onclick="showCity(2)" onkeydown="keyCity(event,2)">
+        <circle cx="430" cy="155" r="9"/>
+        <text x="430" y="138" id="label2">المدينة الذهبية</text>
+      </g>
+
+      <g class="city" tabindex="0" role="button"
+         onclick="showCity(3)" onkeydown="keyCity(event,3)">
+        <circle cx="285" cy="350" r="9"/>
+        <text x="285" y="334" id="label3">مدينة المعرفة</text>
+      </g>
+
+      <g class="city" tabindex="0" role="button"
+         onclick="showCity(4)" onkeydown="keyCity(event,4)">
+        <circle cx="475" cy="270" r="9"/>
+        <text x="475" y="254" id="label4">المدينة الساحلية</text>
+      </g>
+
+      <g class="city" tabindex="0" role="button"
+         onclick="showCity(5)" onkeydown="keyCity(event,5)">
+        <circle cx="210" cy="190" r="9"/>
+        <text x="210" y="174" id="label5">الوادي الأخضر</text>
+      </g>
+
+      <g class="city" tabindex="0" role="button"
+         onclick="showCity(6)" onkeydown="keyCity(event,6)">
+        <circle cx="400" cy="365" r="9"/>
+        <text x="400" y="349" id="label6">المدينة الصناعية</text>
+      </g>
+
+      <g class="city" tabindex="0" role="button"
+         onclick="showCity(7)" onkeydown="keyCity(event,7)">
+        <circle cx="350" cy="430" r="9"/>
+        <text x="350" y="414" id="label7">مدينة التراث</text>
+      </g>
+
+      <text x="350" y="520" text-anchor="middle"
+            font-size="12" fill="#103d2b" id="mapCaption">
+        خريطة رمزية خيالية لمملكة أرض السلام
+      </text>
+    </svg>
+  </div>
+
+  <section class="panel" aria-live="polite">
+    <h3 id="cityName">🏰 العاصمة الملكية</h3>
+    <p id="cityDescription">
+      المركز الملكي ومقر القصر الملكي والمؤسسات الحكومية الرئيسية.
+    </p>
+  </section>
+
+  <h2 id="allCitiesTitle">مدن المملكة الثماني</h2>
+  <div class="city-grid" id="cityGrid"></div>
+
+  <p class="note" id="disclaimer">
+    ملاحظة: مملكة أرض السلام مشروع خيالي رمزي، وهذه الخريطة تصوّرية
+    وليست خريطة جغرافية لدولة معترف بها.
+  </p>
+</main>
+
+<footer>
+  <div id="footerText">👑 مملكة أرض السلام | الخريطة الملكية</div>
+  <div>© <span id="year"></span></div>
+</footer>
+
+<script>
+const cities = [
+  {
+    ar: "العاصمة الملكية",
+    en: "Royal Capital",
+    arDesc: "المركز الملكي ومقر القصر الملكي والمؤسسات الحكومية الرئيسية.",
+    enDesc: "The royal center, home to the Royal Palace and principal government institutions."
+  },
+  {
+    ar: "مدينة السلام",
+    en: "Peace City",
+    arDesc: "مركز الوزارات والإدارات العمومية والخدمات الموجهة للمواطنين.",
+    enDesc: "A center for ministries, public administration and citizen services."
+  },
+  {
+    ar: "المدينة الذهبية",
+    en: "Golden City",
+    arDesc: "قطب التجارة والأعمال والاستثمار والأنشطة الاقتصادية.",
+    enDesc: "A hub for commerce, business, investment and economic activity."
+  },
+  {
+    ar: "مدينة المعرفة",
+    en: "Knowledge City",
+    arDesc: "مركز الجامعات والتعليم والبحث العلمي والابتكار المعرفي.",
+    enDesc: "A center for universities, education, research and knowledge."
+  },
+  {
+    ar: "المدينة الساحلية",
+    en: "Coastal City",
+    arDesc: "منطقة الموانئ والسياحة والأنشطة البحرية.",
+    enDesc: "A coastal region for ports, tourism and maritime activities."
+  },
+  {
+    ar: "الوادي الأخضر",
+    en: "Green Valley",
+    arDesc: "منطقة الطبيعة والزراعة والاستدامة وحماية البيئة.",
+    enDesc: "A region dedicated to nature, agriculture, sustainability and the environment."
+  },
+  {
+    ar: "المدينة الصناعية",
+    en: "Industrial City",
+    arDesc: "مركز الصناعة والتكنولوجيا والإنتاج والابتكار.",
+    enDesc: "A center for industry, technology, manufacturing and innovation."
+  },
+  {
+    ar: "مدينة التراث",
+    en: "Heritage City",
+    arDesc: "مدينة الثقافة والمتاحف والمعالم التاريخية والفنون.",
+    enDesc: "A city of culture, museums, historical landmarks and the arts."
+  }
+];
+
+let lang = "ar";
+let selected = 0;
+
+function showCity(index) {
+  selected = index;
+
+  document.querySelectorAll(".city").forEach((el, i) => {
+    el.classList.toggle("active", i === index);
+  });
+
+  document.getElementById("cityName").textContent =
+    "🏰 " + cities[index][lang];
+
+  document.getElementById("cityDescription").textContent =
+    cities[index][lang + "Desc"];
+
+  renderCards();
+}
+
+function keyCity(event, index) {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    showCity(index);
+  }
+}
+
+function renderCards() {
+  const grid = document.getElementById("cityGrid");
+  grid.innerHTML = "";
+
+  cities.forEach((city, index) => {
+    const button = document.createElement("button");
+    button.className = "city-card";
+
+    const name = document.createElement("strong");
+    name.textContent = (index + 1) + ". " + city[lang];
+
+    const description = document.createElement("span");
+    description.textContent = city[lang + "Desc"];
+
+    button.appendChild(name);
+    button.appendChild(description);
+    button.onclick = () => showCity(index);
+
+    grid.appendChild(button);
+  });
+}
+
+function setLang(language) {
+  lang = language;
+  const english = lang === "en";
+
+  document.documentElement.lang = lang;
+  document.documentElement.dir = english ? "ltr" : "rtl";
+
+  document.getElementById("title").textContent =
+    english ? "Royal Map" : "الخريطة الملكية";
+
+  document.getElementById("subtitle").textContent =
+    english
+      ? "Kingdom of PeaceLand — Royal Cities and Regions"
+      : "مملكة أرض السلام — المدن والأقاليم الملكية";
+
+  document.getElementById("homeText").textContent =
+    english ? "Official Website" : "الموقع الرسمي";
+
+  document.getElementById("mapTitle").textContent =
+    english ? "🗺️ Kingdom Map" : "🗺️ خريطة المملكة";
+
+  document.getElementById("mapIntro").textContent =
+    english
+      ? "Select a city on the map to discover more."
+      : "اضغط على أي مدينة في الخريطة لاكتشاف معلوماتها.";
+
+  document.getElementById("sea1").textContent =
+    english ? "Western Sea" : "البحر الغربي";
+
+  document.getElementById("sea2").textContent =
+    english ? "Eastern Sea" : "البحر الشرقي";
+
+  document.getElementById("mapCaption").textContent =
+    english
+      ? "Illustrative fictional map of the Kingdom of PeaceLand"
+      : "خريطة رمزية خيالية لمملكة أرض السلام";
+
+  document.getElementById("allCitiesTitle").textContent =
+    english ? "The Eight Cities of the Kingdom" : "مدن المملكة الثماني";
+
+  document.getElementById("disclaimer").textContent =
+    english
+      ? "Disclaimer: PeaceLand is a fictional symbolic project. This illustrative map does not represent a recognized sovereign state."
+      : "ملاحظة: مملكة أرض السلام مشروع خيالي رمزي، وهذه الخريطة تصوّرية وليست خريطة جغرافية لدولة معترف بها.";
+
+  document.getElementById("footerText").textContent =
+    english
+      ? "👑 Kingdom of PeaceLand | Royal Map"
+      : "👑 مملكة أرض السلام | الخريطة الملكية";
+
+  cities.forEach((city, index) => {
+    document.getElementById("label" + index).textContent = city[lang];
+  });
+
+  showCity(selected);
+}
+
+document.getElementById("year").textContent = new Date().getFullYear();
+
+renderCards();
+showCity(0);
+</script>
+
+</body>
+</html>
